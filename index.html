@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Huellas Callejeras: rescatamos perros y gatos en situación de abandono y les buscamos un hogar lleno de amor.">
+
+    <title>Huellas Callejeras</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script defer src="script.js"></script>
+
+
+
+
+
+</head>
+
+<body>
+
+    <!--================ HEADER ================-->
+
+    <header class="header" id="siteHeader">
+
+        <div class="container header-inner">
+
+            <a href="" class="logo">
+
+                <img class="logo-image" src="img/logo.png" alt="Huellas Callejeras">
+
+            </a>
+
+            <div class="header-actions">
+
+                <button type="button" id="darkToggle" class="dark-toggle" aria-label="Alternar modo oscuro">
+                    <svg class="icon-moon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                    <svg class="icon-sun" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </button>
+
+                <button class="menu-btn" id="menuBtn" aria-label="Abrir menú" aria-expanded="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M298.5 156.9C312.8 199.8 298.2 243.1 265.9 253.7C233.6 264.3 195.8 238.1 181.5 195.2C167.2 152.3 181.8 109 214.1 98.4C246.4 87.8 284.2 114 298.5 156.9zM164.4 262.6C183.3 295 178.7 332.7 154.2 346.7C129.7 360.7 94.5 345.8 75.7 313.4C56.9 281 61.4 243.3 85.9 229.3C110.4 215.3 145.6 230.2 164.4 262.6zM133.2 465.2C185.6 323.9 278.7 288 320 288C361.3 288 454.4 323.9 506.8 465.2C510.4 474.9 512 485.3 512 495.7L512 497.3C512 523.1 491.1 544 465.3 544C453.8 544 442.4 542.6 431.3 539.8L343.3 517.8C328 514 312 514 296.7 517.8L208.7 539.8C197.6 542.6 186.2 544 174.7 544C148.9 544 128 523.1 128 497.3L128 495.7C128 485.3 129.6 474.9 133.2 465.2zM485.8 346.7C461.3 332.7 456.7 295 475.6 262.6C494.5 230.2 529.6 215.3 554.1 229.3C578.6 243.3 583.2 281 564.3 313.4C545.4 345.8 510.3 360.7 485.8 346.7zM374.1 253.7C341.8 243.1 327.2 199.8 341.5 156.9C355.8 114 393.6 87.8 425.9 98.4C458.2 109 472.8 152.3 458.5 195.2C444.2 238.1 406.4 264.3 374.1 253.7z"/></svg>
+                </button>
+
+            </div>
+
+            <nav class="nav" id="nav" aria-label="Navegación principal">
+
+                <a href="#inicio">Inicio</a>
+                <a href="#nosotros">Nosotros</a>
+                <a href="#servicios">¿Qué hacemos?</a>
+                <a href="#mapa">Mapa</a>
+                <button type="button" class="nav-adopciones-btn" id="navAdopcionesBtn">Adopciones</button>
+                <a href="#historia">Nuestra Historia</a>
+                <a href="#contacto">Contacto</a>
+
+                <a href="donaciones/donaciones.html#donar" class="donar">
+                    Dona 🐾
+                </a>
+
+                <div class="auth-actions" id="authActions">
+                    <button class="auth-btn" data-modal="register">Registrarse</button>
+                    <button class="auth-btn secondary" data-modal="login">Iniciar sesión</button>
+                </div>
+
+            </nav>
+
+        </div>
+
+    </header>
+
+    <main>
+
+        <!--================ HERO ================-->
+
+        <section class="hero" id="inicio">
+
+            <div class="container hero-inner">
+
+                <div class="hero-text" data-animate>
+
+                    <h1>
+                        Cambiemos su historia,
+                        <span>dejemos huellas.</span>
+                    </h1>
+
+                    <p>
+                        Rescatamos perros y gatos en situación de abandono,
+                        les brindamos atención veterinaria, alimentación y
+                        la oportunidad de encontrar un hogar lleno de amor.
+                    </p>
+
+                    <div class="hero-buttons">
+
+                        <a href="#nosotros" class="btn btn-primary">Conócenos</a>
+
+                        <button type="button" class="btn btn-secondary" id="showAdopcionesBtn">Ver adopciones</button>
+
+                    </div>
+
+                    <div class="hero-stats">
+
+                        <div class="stat">
+                            <div class="stat-number"><h2>120</h2></div>
+                            <div class="stat-label">Animales Rescatados</div>
+                        </div>
+
+                        <div class="stat">
+                            <div class="stat-number"><h2>60</h2></div>
+                            <div class="stat-label">Adopciones Exitosas</div>
+                        </div>
+
+                        <div class="stat">
+                            <div class="stat-number"><h2>25</h2></div>
+                            <div class="stat-label">Voluntarios</div>
+                        </div>
+
+                        <div class="stat">
+                            <div class="stat-number"><h2>1</h2></div>
+                            <div class="stat-label">Años de Experiencia</div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="hero-img" data-animate data-delay="200">
+
+                    <div class="hero-img-frame">
+                        <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=1200&q=80" alt="Perro rescatado feliz">
+                    </div>
+
+                    <div class="badge">
+                        Cada huella<br>cuenta 🐾
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="wave" aria-hidden="true">
+                <svg viewBox="0 0 1440 100" fill="none" preserveAspectRatio="none">
+                    <path d="M0 50C240 100 480 0 720 50C960 100 1200 0 1440 50V100H0V50Z" class="wave-fill"></path>
+                </svg>
+            </div>
+
+        </section>
+
+        <section class="section map-section" id="mapa-ubicacion">
+
+            <div class="container">
+
+                <div class="section-heading" data-animate>
+
+                    <h5>MAPA</h5>
+
+                    <h2>Encuéntranos</h2>
+
+                    <p>Estamos ubicados en Medellín y trabajamos para proteger y cuidar a los animales en situación de vulnerabilidad.</p>
+
+                </div>
+
+                <div class="map-box">
+                    <iframe title="Ubicación de Huellas Callejeras" src="https://www.google.com/maps?q=Medell%C3%ADn%20Colombia&z=12&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!--================ MAPA DE REPORTES ================-->
+
+        <section class="section mapa-section" id="mapa">
+
+            <div class="container">
+
+                <div class="section-heading">
+                    <h5>MAPA EN VIVO</h5>
+                    <h2>Animales reportados</h2>
+                    <p>Mira dónde hay animales que necesitan ayuda. Los reportes nuevos aparecen en el mapa al instante.</p>
+                </div>
+
+                <div class="mapa-layout">
+
+                    <div class="mapa-wrap">
+                        <div id="reportMap" class="report-map" role="application" aria-label="Mapa de animales reportados"></div>
+                        <div class="mapa-status" id="mapStatus"><span class="live-dot" aria-hidden="true"></span> <span id="mapStatusText">Actualizando…</span></div>
+                    </div>
+
+                    <aside class="mapa-panel">
+
+                        <div class="mapa-filtros" id="mapFilters">
+                            <button type="button" class="mapa-chip active" data-filter="todos">Todos</button>
+                            <button type="button" class="mapa-chip" data-filter="perro">🐶 Perros</button>
+                            <button type="button" class="mapa-chip" data-filter="gato">🐱 Gatos</button>
+                            <button type="button" class="mapa-chip" data-filter="otro">🐾 Otros</button>
+                        </div>
+
+                        <div class="mapa-lista" id="reportList"></div>
+
+                        <div class="mapa-form-box">
+
+                            <h3>Reportar un animal</h3>
+                            <p id="reportHint">Inicia sesión para reportar un animal.</p>
+
+                            <form id="reportForm" class="pet-form">
+
+                                <select name="tipo" required>
+                                    <option value="perro">Perro</option>
+                                    <option value="gato">Gato</option>
+                                    <option value="otro">Otro animal</option>
+                                </select>
+
+                                <select name="estado" required>
+                                    <option value="visto">Visto en la calle</option>
+                                    <option value="herido">Herido, necesita ayuda</option>
+                                </select>
+
+                                <textarea name="descripcion" rows="3" placeholder="Describe al animal y el lugar (color, tamaño, punto de referencia)" required></textarea>
+
+                                <input type="url" name="foto" placeholder="URL de foto (opcional)">
+
+                                <div class="mapa-ubicacion" id="reportLocation">Toca el mapa para marcar dónde está.</div>
+
+                                <button type="button" class="mapa-secondary" id="useMyLocation">Usar mi ubicación</button>
+
+                                <button type="submit">Publicar reporte</button>
+
+                                <p class="auth-message" id="reportMessage"></p>
+
+                            </form>
+
+                        </div>
+
+                    </aside>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!--================ SERVICIOS ================-->
+
+        <section class="section" id="servicios">
+
+            <div class="container">
+
+                <div class="section-heading" data-animate>
+
+                    <h5>QUÉ HACEMOS</h5>
+
+                    <h2>Nuestros Servicios</h2>
+
+                    <p>Todo lo que tu nuevo compañero necesita para una vida feliz y saludable.</p>
+
+                </div>
+
+                <div class="cards">
+
+                    <article class="service-card" data-animate>
+
+                        <div class="service-img">
+                            <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80" alt="Rescate de animales" loading="lazy">
+                        </div>
+
+                        <div class="service-body">
+
+                            <div class="service-top">
+
+                                <h3>Rescate</h3>
+
+                                <span class="service-icon" aria-hidden="true">❤</span>
+
+                            </div>
+
+                            <p>
+                                Rescatamos animales que viven en condiciones de abandono
+                                y les damos la oportunidad de comenzar una nueva vida.
+                            </p>
+
+                        </div>
+
+                    </article>
+
+                    <article class="service-card" data-animate data-delay="100">
+
+                        <div class="service-img">
+                            <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=900&q=80" alt="Atención médica veterinaria" loading="lazy">
+                        </div>
+
+                        <div class="service-body">
+
+                            <div class="service-top">
+
+                                <h3>Atención Médica</h3>
+
+                                <span class="service-icon green" aria-hidden="true">✚</span>
+
+                            </div>
+
+                            <p>
+                                Nuestros veterinarios brindan atención,
+                                vacunas, esterilización y tratamientos.
+                            </p>
+
+                        </div>
+
+                    </article>
+
+                    <article class="service-card" data-animate data-delay="200">
+
+                        <div class="service-img">
+                            <img src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=900&q=80" alt="Adopción de mascotas" loading="lazy">
+                        </div>
+
+                        <div class="service-body">
+
+                            <div class="service-top">
+
+                                <h3>Adopción</h3>
+
+                                <span class="service-icon orange" aria-hidden="true">🏠</span>
+
+                            </div>
+
+                            <p>
+                                Buscamos familias responsables
+                                que les ofrezcan un hogar para siempre.
+                            </p>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!--================ ADOPCIONES ================-->
+
+        <section class="adopciones-section section hidden" id="adopciones">
+
+            <div class="container">
+
+                <div class="adopciones-modal">
+
+                    <div class="adopciones-modal-header">
+
+                        <div class="section-heading">
+
+                            <h5>MASCOTAS EN ADOPCIÓN</h5>
+
+                            <h2>Encuentra tu compañero</h2>
+
+                            <p>Elige una pestaña y revisa los animales disponibles o publica una nueva adopción.</p>
+
+                        </div>
+
+                        <button class="modal-close close-adopciones" id="closeAdoptions" aria-label="Cerrar adopciones">×</button>
+
+                    </div>
+
+                    <!-- ANTES Y DESPUÉS: historias de rescate -->
+
+                    <div class="rescatados">
+
+                        <div class="container">
+  <div class="box">
+    <div class="imgBx">
+      <img src="https://images.unsplash.com/photo-1579748138140-ce9ef2c32db1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80">
+    </div>
+    <div class="content">
+      <div>
+        <h2>Image Title</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi accusamus molestias quidem iusto.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="box">
+    <div class="imgBx">
+      <img src="https://images.unsplash.com/photo-1579639782539-15cc6c0be63f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80">
+    </div>
+    <div class="content">
+      <div>
+        <h2>Image Title</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi accusamus molestias quidem iusto.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="box">
+    <div class="imgBx">
+      <img src="https://images.unsplash.com/photo-1603984362497-0a878f607b92?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=700&q=80">
+    </div>
+    <div class="content">
+      <div>
+        <h2>Image Title</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi accusamus molestias quidem iusto.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="box">
+    <div class="imgBx">
+      <img src="https://images.unsplash.com/photo-1579310962131-aa21f240d986?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1234&q=80">
+    </div>
+    <div class="content">
+      <div>
+        <h2>Image Title</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi accusamus molestias quidem iusto.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+                        <!-- carrusel original oculto -->
+                        <div class="ba-carousel" id="baCarousel" hidden>
+
+                            <div class="ba-track" id="baTrack">
+
+                                <div class="ba-slide">
+
+                                    <div class="ba-compare" data-pos="50">
+                                        <img class="ba-before" src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=900&q=80" alt="Rocky en la calle, antes de ser rescatado">
+                                        <div class="ba-after">
+                                            <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=900&q=80" alt="Rocky adoptado y saludable">
+                                        </div>
+                                        <div class="ba-handle" aria-hidden="true">
+                                            <span>⇔</span>
+                                        </div>
+                                        <span class="ba-tag before">Antes · La calle</span>
+                                        <span class="ba-tag after">Después · Adoptado</span>
+                                    </div>
+
+                                    <div class="ba-caption">
+
+                                        <h3>Rocky</h3>
+
+                                        <p>Llegó desnutrido y con sarna. Hoy luce su pelaje brillante y corre feliz con su nueva familia.</p>
+
+                                        <span class="ba-stats">Rescatado · 1 año · Adoptado 🏡</span>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="ba-slide">
+
+                                    <div class="ba-compare" data-pos="50">
+                                        <img class="ba-before" src="https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=900&q=80" alt="Mika en la calle, antes de ser rescatada">
+                                        <div class="ba-after">
+                                            <img src="https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=900&q=80" alt="Mika adoptada y saludable">
+                                        </div>
+                                        <div class="ba-handle" aria-hidden="true">
+                                            <span>⇔</span>
+                                        </div>
+                                        <span class="ba-tag before">Antes · La calle</span>
+                                        <span class="ba-tag after">Después · Adoptado</span>
+                                    </div>
+
+                                    <div class="ba-caption">
+
+                                        <h3>Mika</h3>
+
+                                        <p>Rescatada de una obra en abandono. Hoy es una gata consentida que busca un hogar lleno de amor.</p>
+
+                                        <span class="ba-stats">Rescatada · 2 años · En adopción 🐾</span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <button type="button" class="ba-arrow prev" data-direction="-1" aria-label="Historia anterior">‹</button>
+
+                            <button type="button" class="ba-arrow next" data-direction="1" aria-label="Siguiente historia">›</button>
+
+                            <div class="ba-dots" id="baDots"></div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="adopciones-tabs">
+                        <button type="button" class="adopciones-tab-btn active" data-tab="mascotas">Mascotas</button>
+                        <button type="button" class="adopciones-tab-btn" data-tab="publicar">Publicar</button>
+                    </div>
+
+                    <div class="adopciones-content">
+
+                        <div class="adopciones-tab-panel active" id="mascotasTab">
+                            <div class="adopciones-lista" id="petsList"></div>
+                        </div>
+
+                        <div class="adopciones-tab-panel" id="publicarTab">
+
+                            <div class="adopciones-panel">
+
+                                <h3 id="petSectionTitle">Publicar mascota</h3>
+
+                                <p id="petSectionText">Inicia sesión para agregar una mascota disponible para adopción.</p>
+
+                                <form id="petForm" class="pet-form">
+
+                                    <input type="text" name="nombre" placeholder="Nombre de la mascota" required>
+
+                                    <input type="text" name="raza" placeholder="Raza o tipo" required>
+
+                                    <input type="text" name="edad" placeholder="Edad aproximada" required>
+
+                                    <textarea name="descripcion" placeholder="Cuéntanos su historia y personalidad" rows="4" required></textarea>
+
+                                    <input type="url" name="foto" placeholder="URL de foto (opcional)">
+
+                                    <button type="submit">Publicar adopción</button>
+
+                                    <p class="auth-message" id="petMessage"></p>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!--================ NOSOTROS ================-->
+
+        <section class="about-section section" id="nosotros">
+
+            <div class="container about-inner">
+
+                <div class="about-img" data-animate>
+
+                    <img src="https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?auto=format&fit=crop&w=1200&q=80" alt="Nuestro equipo con mascotas rescatadas">
+
+                    <div class="about-badge">
+                        <strong>1+</strong>
+                        <span>Año de<br>cambio</span>
+                    </div>
+
+                </div>
+
+                <div class="about-content" data-animate data-delay="200">
+
+                    <span class="eyebrow">QUIÉNES SOMOS</span>
+
+                    <h2>Somos una comunidad que cambia vidas.</h2>
+
+                    <div class="about-text">
+
+                        <p>
+                            Huellas Callejeras nació gracias al esfuerzo de un grupo de voluntarios
+                            comprometidos con rescatar, cuidar y encontrar un hogar para los animales
+                            que viven en las calles.
+                        </p>
+
+                        <p>
+                            Cada rescate representa una nueva oportunidad: atención médica, alimento,
+                            cariño y una familia que los espere para siempre.
+                        </p>
+
+                    </div>
+
+                    <div class="about-features">
+
+                        <div class="feature">
+                            <span class="feature-icon" aria-hidden="true">🐾</span>
+                            <div>
+                                <h4>Voluntariado real</h4>
+                                <p>Personas comprometidas que donan su tiempo y amor.</p>
+                            </div>
+                        </div>
+
+                        <div class="feature">
+                            <span class="feature-icon green" aria-hidden="true">✚</span>
+                            <div>
+                                <h4>Atención veterinaria</h4>
+                                <p>Vacunas, esterilización y tratamientos para cada rescatado.</p>
+                            </div>
+                        </div>
+
+                        <div class="feature">
+                            <span class="feature-icon" aria-hidden="true">🏠</span>
+                            <div>
+                                <h4>Hogares temporales</h4>
+                                <p>Espacios seguros mientras esperan su adopción.</p>
+                            </div>
+                        </div>
+
+                        <div class="feature">
+                            <span class="feature-icon green" aria-hidden="true">💗</span>
+                            <div>
+                                <h4>Adopción responsable</h4>
+                                <p>Buscamos familias que ofrezcan amor para siempre.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <button class="btn btn-primary" id="historiaBtn">Conoce nuestra historia</button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!--================ NUESTRA HISTORIA ================-->
+
+        <section class="section" id="historia">
+
+            <div class="container">
+
+                <div class="section-heading" data-animate>
+
+                    <h5>NUESTRA HISTORIA</h5>
+
+                    <h2>Una historia de huellas</h2>
+
+                    <p>Cada rescate representa una oportunidad para cambiar una vida.</p>
+
+                </div>
+
+                <div class="timeline">
+
+                    <div class="timeline-card" data-animate>
+
+                        <span>🐾 2026</span>
+
+                        <h3>Todo comenzó</h3>
+
+                        <p>
+                            Con la creación del proyecto.
+                        </p>
+
+                    </div>
+
+                    <div class="timeline-card" data-animate data-delay="100">
+
+                        <span>❤️ 2026</span>
+
+                        <h3>Crecimiento</h3>
+
+                        <p>
+                            Adelantamos el proyecto y sumamos más voluntarios.
+                        </p>
+
+                    </div>
+
+                    <div class="timeline-card" data-animate data-delay="200">
+
+                        <span>🏡 Hoy</span>
+
+                        <h3>Seguimos creciendo</h3>
+
+                        <p>
+                            Continuamos trabajando gracias al apoyo de personas
+                            que creen en nuestra misión.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!--================ CTA DONACIONES ================-->
+
+        <section class="cta" id="ayudar">
+
+            <div class="container cta-inner">
+
+                <div class="cta-paws" aria-hidden="true">
+                    <span>🐾</span>
+                    <span>🐾</span>
+                    <span>🐾</span>
+                </div>
+
+                <h2>¿Quieres hacer la diferencia?</h2>
+
+                <p>
+                    Tu ayuda permite rescatar más animales, brindar atención médica,
+                    alimentación y encontrarles un hogar lleno de amor.
+                </p>
+
+                <a href="donaciones/donaciones.html#donar" class="btn btn-cta">
+                    Haz tu Donación 🐾
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!--================ FOOTER ================-->
+
+    <footer id="contacto">
+
+        <div class="container footer-grid">
+
+            <div class="footer-brand">
+
+                <h2>Huellas <span>🐾</span><br>Callejeras</h2>
+
+                <p>
+                    Trabajamos cada día para ofrecer una nueva oportunidad
+                    a perros y gatos que han sido abandonados.
+                </p>
+
+                <div class="redes">
+                    <a href="#">Facebook</a>
+                    <a href="#">Instagram</a>
+                    <a href="#">TikTok</a>
+                </div>
+
+            </div>
+
+            <div>
+
+                <h3>Navegación</h3>
+
+                <a href="#inicio">Inicio</a>
+                <a href="#nosotros">Nosotros</a>
+                <a href="#servicios">Servicios</a>
+                <a href="#mapa">Mapa</a>
+                <a href="#historia">Historia</a>
+                <a href="#contacto">Contacto</a>
+
+            </div>
+
+            <div>
+
+                <h3>Contacto</h3>
+
+                <p>📍 Medellín, Colombia</p>
+                <p>📞 +57 304 310 6853</p>
+                <p>✉ contacto@huellascallejeras.org</p>
+
+            </div>
+
+            <div>
+
+                <h3>Suscríbete</h3>
+
+                <form id="formulario">
+
+                    <input type="email" placeholder="Correo electrónico" required>
+
+                    <button type="submit" aria-label="Suscribirme">➜</button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+    <div class="copy">
+        © 2026 Huellas Callejeras. Todos los derechos reservados.
+    </div>
+
+    <!--================ MODAL PERFIL ================-->
+
+    <div class="modal-overlay" id="profileModal" aria-hidden="true">
+
+        <div class="profile-card modal-profile-card">
+
+            <button class="modal-close" id="closeProfileModal" aria-label="Cerrar perfil">×</button>
+
+            <div class="profile-intro">
+
+                <h5>MI PERFIL</h5>
+
+                <h2>Gestiona tu información</h2>
+
+                <p>Actualiza tus datos y mantén tu perfil al día.</p>
+
+            </div>
+
+            <div class="profile-content">
+
+                <div class="profile-info" id="profileInfo"></div>
+
+                <form id="editProfileForm" class="profile-form">
+
+                    <input type="text" name="nombre" placeholder="Tu nombre" required>
+
+                    <input type="email" name="email" placeholder="Correo electrónico" required>
+
+                    <input type="password" name="password" placeholder="Nueva contraseña (opcional)">
+
+                    <button type="submit">Guardar cambios</button>
+
+                    <p class="auth-message" id="profileMessage"></p>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!--================ MODAL AUTENTICACIÓN ================-->
+
+    <div class="modal-overlay" id="authModal" aria-hidden="true">
+
+        <div class="auth-modal">
+
+            <button class="modal-close" id="closeAuthModal" aria-label="Cerrar">×</button>
+
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-form="register">Registrarse</button>
+                <button class="tab-btn" data-form="login">Iniciar sesión</button>
+            </div>
+
+            <form id="registerForm" class="auth-form active-form">
+
+                <h3>Crear cuenta</h3>
+
+                <input type="text" name="nombre" placeholder="Tu nombre" required>
+                <input type="email" name="email" placeholder="Correo electrónico" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
+
+                <select name="rol" required>
+                    <option value="usuario">Usuario</option>
+                    <option value="admin">Administrador</option>
+                    <option value="entidad">Entidad</option>
+                </select>
+
+                <button type="submit">Registrarme</button>
+
+                <p class="auth-message" id="registerMessage"></p>
+
+            </form>
+
+            <form id="loginForm" class="auth-form">
+
+                <h3>Iniciar sesión</h3>
+
+                <input type="email" name="email" placeholder="Correo electrónico" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
+
+                <select name="rol" required>
+                    <option value="usuario">Usuario</option>
+                    <option value="admin">Administrador</option>
+                    <option value="entidad">Entidad</option>
+                </select>
+
+                <button type="submit">Entrar</button>
+
+                <p class="auth-message" id="loginMessage"></p>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+</body>
+
+</html>

@@ -1,0 +1,393 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+
+    --primary: #db2777;
+    --primary-dark: #be185d;
+    --primary-400: #f472b6;
+    --primary-100: #fce7f3;
+    --primary-200: #fbcfe8;
+    --primary-50: #fdf2f8;
+
+    --accent: #22c55e;
+    --accent-dark: #16a34a;
+    --accent-100: #dcfce7;
+
+    --bg: #ffffff;
+    --bg-soft: #f9fafb;
+    --surface: #ffffff;
+    --ink: #111827;
+    --text: #4b5563;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+
+    --radius: 1rem;
+    --radius-lg: 1.5rem;
+    --shadow: 0 20px 45px rgba(17, 24, 39, .1);
+    --shadow-sm: 0 10px 30px rgba(17, 24, 39, .08);
+
+    --font-serif: 'Lora', Georgia, serif;
+    --font-sans: 'Poppins', sans-serif;
+
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-sans);
+}
+
+body {
+    background: linear-gradient(180deg, var(--bg) 0%, var(--primary-50) 100%);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-serif);
+    color: var(--ink);
+    line-height: 1.2;
+}
+
+/*=====================
+HEADER
+=====================*/
+
+header {
+    background: rgba(255, 255, 255, .95);
+    backdrop-filter: blur(10px);
+    padding: 18px 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(17, 24, 39, .08);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+header h1 {
+    color: var(--primary);
+    font-size: clamp(1.4rem, 2vw, 2rem);
+    font-weight: 700;
+}
+
+.volver {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background: var(--primary);
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 999px;
+    font-weight: 600;
+    transition: .3s ease;
+    border: 2px solid transparent;
+}
+
+.volver:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(219, 39, 119, .35);
+}
+
+/*=====================
+BANNER
+=====================*/
+
+.banner {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    padding: 80px 8%;
+    text-align: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(255,255,255,.18), transparent 40%);
+}
+
+.banner h2,
+.banner p {
+    position: relative;
+    z-index: 1;
+}
+
+.banner h2 {
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    margin-bottom: 18px;
+    color: #fff;
+}
+
+.banner p {
+    font-size: 1.1rem;
+    max-width: 720px;
+    margin: auto;
+    line-height: 1.8;
+    color: var(--primary-100);
+}
+
+/*=====================
+CONTENEDOR
+=====================*/
+
+.contenedor {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px;
+    padding: 70px 8%;
+}
+
+.card {
+    background: var(--surface);
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: .3s ease;
+    border: 1px solid var(--border);
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow);
+}
+
+.card h2 {
+    color: var(--primary-dark);
+    margin-bottom: 12px;
+    font-size: clamp(1.8rem, 2vw, 2.2rem);
+}
+
+.card p {
+    margin-bottom: 25px;
+    color: var(--text);
+}
+
+.card form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.card label {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.card label input{
+
+accent-color:var(--primary);
+
+width:18px;
+
+height:18px;
+
+}
+
+.card input[type="text"],
+.card input[type="tel"],
+.card input[type="number"] {
+    padding: 15px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-soft);
+    font-size: 15px;
+    outline: none;
+    color: var(--ink);
+    transition: border-color .3s ease, box-shadow .3s ease;
+}
+
+.card input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(219, 39, 119, .12);
+}
+
+.card button {
+    padding: 16px 18px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .3s ease;
+    margin-top: 10px;
+}
+
+.card button:hover {
+    background: var(--primary-dark);
+    box-shadow: 0 12px 28px rgba(219, 39, 119, .35);
+    transform: translateY(-2px);
+}
+
+.donation-notice{
+
+margin-bottom:18px;
+
+padding:14px 16px;
+
+border-radius:14px;
+
+background:var(--accent-100);
+
+color:#166534;
+
+border:1px solid #a7f3d0;
+
+font-weight:600;
+
+line-height:1.6;
+
+}
+
+.donation-notice a{
+
+color:inherit;
+
+}
+
+.donation-notice.error{
+
+background:#fff2f2;
+
+color:#a33b3b;
+
+border-color:#f2c7c7;
+
+}
+
+/*=====================
+INFO
+=====================*/
+
+.info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px;
+    padding: 0 8% 80px;
+}
+
+.info div {
+    background: rgba(255, 255, 255, .88);
+    padding: 35px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.info h3 {
+    color: var(--primary-dark);
+    margin-bottom: 20px;
+    font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.info ul{
+
+padding-left:20px;
+
+line-height:2;
+
+}
+
+.info ul li::marker{
+
+color:var(--primary);
+
+}
+
+.info p{
+
+line-height:1.8;
+
+margin-bottom:20px;
+
+}
+
+.info img{
+
+width:100%;
+
+border-radius:20px;
+
+margin-top:20px;
+
+}
+
+/*=====================
+FOOTER
+=====================*/
+
+footer {
+    background: var(--primary-dark);
+    color: #fff;
+    padding: 22px 20px;
+    text-align: center;
+    margin-top: 50px;
+}
+
+/*=====================
+RESPONSIVE
+=====================*/
+
+@media(max-width:900px){
+
+.contenedor{
+
+grid-template-columns:1fr;
+
+}
+
+.info{
+
+grid-template-columns:1fr;
+
+}
+
+header{
+
+flex-direction:column;
+
+gap:20px;
+
+}
+
+.banner h2{
+
+font-size:36px;
+
+}
+
+}
+
+@media(max-width:600px){
+
+.banner{
+
+padding:60px 20px;
+
+}
+
+.banner h2{
+
+font-size:30px;
+
+}
+
+.card{
+
+padding:25px;
+
+}
+
+}
