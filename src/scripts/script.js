@@ -205,6 +205,51 @@ function guardarMascotas(mascotas) {
     localStorage.setItem(PETS_KEY, JSON.stringify(mascotas));
 }
 
+async function procesarFotoMascota(file) {
+    if (!file) {
+        return "https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=80";
+    }
+
+    const tiposPermitidos = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+    if (!tiposPermitidos.includes(file.type)) {
+        throw new Error("Selecciona una imagen PNG, JPG, WebP o GIF.");
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+        throw new Error("La imagen debe pesar menos de 10 MB.");
+    }
+
+    const bitmap = await createImageBitmap(file);
+    const escala = Math.min(1, 900 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * escala));
+    canvas.height = Math.max(1, Math.round(bitmap.height * escala));
+    const contexto = canvas.getContext("2d");
+    if (!contexto) {
+        bitmap.close();
+        throw new Error("No se pudo procesar la imagen en este navegador.");
+    }
+
+    contexto.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+
+    const fotoOptimizada = await new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+            if (!blob) {
+                reject(new Error("No se pudo procesar la imagen."));
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
+            reader.readAsDataURL(blob);
+        }, "image/webp", 0.82);
+    });
+
+    return fotoOptimizada;
+}
+
 function renderMascotas() {
 
     const contenedor = document.getElementById("petsList");
@@ -243,17 +288,47 @@ function renderMascotas() {
         return;
     }
 
-    contenedor.innerHTML = mascotas.map((mascota) => `
-        <article class="pet-card">
-            <img src="${mascota.foto || "https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=80"}" alt="${mascota.nombre}">
-            <div>
-                <h3>${mascota.nombre}</h3>
-                <p><strong>Raza:</strong> ${mascota.raza}</p>
-                <p><strong>Edad:</strong> ${mascota.edad}</p>
-                <p>${mascota.descripcion}</p>
-            </div>
-        </article>
-    `).join("");
+    const tarjetas = mascotas.map((mascota) => {
+        const tarjeta = document.createElement("article");
+        tarjeta.className = "pet-card";
+
+        const contenedorFoto = document.createElement("div");
+        contenedorFoto.className = "imgBx";
+        const foto = document.createElement("img");
+        foto.src = mascota.foto || "https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=80";
+        foto.alt = mascota.nombre;
+        foto.loading = "lazy";
+        contenedorFoto.append(foto);
+
+        const contenido = document.createElement("div");
+        contenido.className = "content";
+        const texto = document.createElement("div");
+        const nombre = document.createElement("h2");
+        nombre.textContent = mascota.nombre;
+        const crearDato = (etiqueta, valor) => {
+            const dato = document.createElement("p");
+            const titulo = document.createElement("strong");
+            titulo.textContent = `${etiqueta}: `;
+            dato.append(titulo, document.createTextNode(valor));
+            return dato;
+        };
+        const edad = String(mascota.edad || "").trim();
+        const edadFormateada = /^\d+(?:[.,]\d+)?$/.test(edad)
+            ? `${edad} ${edad === "1" ? "año" : "años"}`
+            : edad || "No especificada";
+
+        texto.append(
+            nombre,
+            crearDato("Raza", mascota.raza || "No especificada"),
+            crearDato("Edad", edadFormateada),
+            crearDato("Descripción", mascota.descripcion || "Sin descripción.")
+        );
+        contenido.append(texto);
+        tarjeta.append(contenedorFoto, contenido);
+        return tarjeta;
+    });
+
+    contenedor.replaceChildren(...tarjetas);
 
 }
 
@@ -509,6 +584,11 @@ if (registerForm) {
             return;
         }
 
+        if (password.length < 8) {
+            registerMessage.textContent = "La contraseña debe tener al menos 8 caracteres.";
+            return;
+        }
+
         const usuarios = await cargarUsuarios();
 
         if (usuarios.some((usuario) => usuario.email.toLowerCase() === email.toLowerCase())) {
@@ -558,7 +638,7 @@ const petMessage = document.getElementById("petMessage");
 
 if (petForm) {
 
-    petForm.addEventListener("submit", (event) => {
+    petForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const usuario = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
@@ -577,10 +657,18 @@ if (petForm) {
         const raza = petForm.querySelector("input[name='raza']").value.trim();
         const edad = petForm.querySelector("input[name='edad']").value.trim();
         const descripcion = petForm.querySelector("textarea[name='descripcion']").value.trim();
-        const foto = petForm.querySelector("input[name='foto']").value.trim();
+        const archivoFoto = petForm.querySelector("input[name='foto']").files[0];
 
         if (!nombre || !raza || !edad || !descripcion) {
             petMessage.textContent = "Completa los datos de la mascota.";
+            return;
+        }
+
+        let foto;
+        try {
+            foto = await procesarFotoMascota(archivoFoto);
+        } catch (error) {
+            petMessage.textContent = error.message || "No se pudo procesar la imagen seleccionada.";
             return;
         }
 
@@ -592,13 +680,22 @@ if (petForm) {
             raza,
             edad,
             descripcion,
-            foto: foto || "https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=80"
+            foto
         });
 
-        guardarMascotas(mascotas);
+        try {
+            guardarMascotas(mascotas);
+        } catch (error) {
+            console.error("No se pudo guardar la mascota en el navegador.", error);
+            petMessage.textContent = "No se pudo guardar la mascota. Prueba con una imagen más pequeña o libera espacio del navegador.";
+            return;
+        }
+
         petForm.reset();
         petMessage.textContent = "✅ Mascota publicada correctamente.";
         renderMascotas();
+        activarPestanaAdopciones("mascotas");
+        document.getElementById("petsList")?.scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
 }

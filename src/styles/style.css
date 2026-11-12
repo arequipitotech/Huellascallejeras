@@ -754,7 +754,7 @@ ADOPCIONES
     padding: 32px;
     color: var(--muted);
     text-align: center;
-    grid-column: 1 / -1;
+    flex: 1 1 100%;
 }
 
 /*======================
@@ -993,6 +993,15 @@ ANTES Y DESPUÉS
 
 .pet-form.visible {
     display: flex;
+}
+
+.pet-form label[for="petPhoto"] {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.pet-form input[type="file"] {
+    padding: 10px;
 }
 
 .pet-form input,
@@ -2142,4 +2151,104 @@ MAPA DE REPORTES
 }
 .rescatados .container .box:hover .content p {
     transform: translateY(0px);
+}
+
+.adopciones-lista {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    transform-style: preserve-3d;
+    perspective: 500px;
+}
+
+.adopciones-lista .pet-card {
+    position: relative;
+    width: 275px;
+    height: 275px;
+    margin: 45px 7.5px 0;
+    background: #000;
+    border-radius: 0;
+    overflow: hidden;
+    transition: 0.5s;
+    transform-style: preserve-3d;
+}
+
+.adopciones-lista:hover .pet-card {
+    transform: rotateY(25deg);
+}
+
+.adopciones-lista .pet-card:hover ~ .pet-card {
+    transform: rotateY(-25deg);
+}
+
+.adopciones-lista .pet-card:hover {
+    transform: rotateY(0deg) scale(1.25);
+    z-index: 1;
+    box-shadow: 0 25px 40px rgba(0, 0, 0, 0.5);
+}
+
+.adopciones-lista .pet-card .imgBx {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
+.adopciones-lista .pet-card .imgBx::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg, #f00, #000);
+    opacity: 0;
+    transition: 0.5s;
+    mix-blend-mode: multiply;
+}
+
+.adopciones-lista .pet-card:hover .imgBx::before {
+    opacity: 1;
+}
+
+.adopciones-lista .pet-card .imgBx img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.adopciones-lista .pet-card .content {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    padding: 20px;
+}
+
+.adopciones-lista .pet-card .content h2,
+.adopciones-lista .pet-card .content p {
+    color: #fff;
+    transform: translateY(200px);
+    transition: 0.5s;
+}
+
+.adopciones-lista .pet-card .content h2 {
+    margin-bottom: 5px;
+    font-size: 20px;
+    text-transform: uppercase;
+    transition-delay: 0.3s;
+}
+
+.adopciones-lista .pet-card .content p {
+    margin-bottom: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    transition-delay: 0.4s;
+}
+
+.adopciones-lista .pet-card:hover .content h2,
+.adopciones-lista .pet-card:hover .content p {
+    transform: translateY(0);
 }
