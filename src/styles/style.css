@@ -1380,6 +1380,55 @@ footer p {
     background: var(--primary-dark);
 }
 
+#contactForm {
+    display: grid;
+    gap: 9px;
+    max-width: 340px;
+}
+
+#contactForm input,
+#contactForm textarea {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid rgba(80, 110, 82, .2);
+    border-radius: 8px;
+    outline: none;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+}
+
+#contactForm textarea {
+    resize: vertical;
+}
+
+#contactForm input:focus,
+#contactForm textarea:focus {
+    border-color: var(--primary);
+}
+
+#contactForm button {
+    padding: 11px 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#contactForm button:hover {
+    background: var(--primary-dark);
+}
+
+#contactForm .auth-message {
+    margin: 0;
+    font-size: 12px;
+}
+
 .copy {
     background: var(--primary-dark);
     color: var(--primary-100);

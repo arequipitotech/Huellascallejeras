@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import AdminDashboard from "./AdminDashboard.jsx";
 import homePage from "./pages/home.html?raw";
 import donationsPage from "./pages/donations.html?raw";
 
@@ -12,11 +13,17 @@ const homeMarkup = extractBody(homePage);
 const donationsMarkup = extractBody(donationsPage);
 
 export default function App() {
+  const isAdminPage = window.location.pathname.startsWith("/admin");
   const isDonationsPage = window.location.pathname.endsWith(
     "/donaciones/donaciones.html"
   );
 
   useEffect(() => {
+    if (isAdminPage) {
+      document.title = "Administración | Huellas Callejeras";
+      return;
+    }
+
     document.title = isDonationsPage
       ? "Donaciones | Huellas Callejeras"
       : "Huellas Callejeras";
@@ -28,7 +35,11 @@ export default function App() {
     }
 
     import("./scripts/script.js");
-  }, [isDonationsPage]);
+  }, [isAdminPage, isDonationsPage]);
+
+  if (isAdminPage) {
+    return <AdminDashboard />;
+  }
 
   return (
     <div

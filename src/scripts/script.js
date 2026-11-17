@@ -109,17 +109,67 @@ const registerForm = document.getElementById("registerForm");
 const loginForm = document.getElementById("loginForm");
 const registerMessage = document.getElementById("registerMessage");
 const loginMessage = document.getElementById("loginMessage");
-const DB_KEY = "huellas_usuarios";
 const SESSION_KEY = "huellas_usuario";
-const DB_PATH = "./db/usuarios.json";
-const PETS_KEY = "huellas_mascotas";
-const USUARIOS_INICIALES = [
-    { nombre: "Admin Demo", email: "admin@huellas.com", password: "admin123", rol: "admin" },
-    { nombre: "Entidad Demo", email: "entidad@huellas.com", password: "entidad123", rol: "entidad" },
-    { nombre: "Usuario Demo", email: "usuario@huellas.com", password: "usuario123", rol: "usuario" }
-];
+const usuarioSesion = () => JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
 
-const mascotasIniciales = [];
+async function apiRequest(path, options = {}) {
+    const headers = { ...(options.headers || {}) };
+    const body = options.body;
+
+    if (body && !(body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(body);
+    }
+
+    if (options.method && options.method !== "GET") {
+        const usuario = usuarioSesion();
+        if (usuario?.csrfToken) {
+            headers["X-CSRF-Token"] = usuario.csrfToken;
+        }
+    }
+
+    const response = await fetch(path, {
+        ...options,
+        headers,
+        credentials: "same-origin"
+    });
+    const data = await leerRespuestaJSON(response);
+    if (!response.ok) {
+        throw new Error(data?.error || "No se pudo completar la solicitud.");
+    }
+    return data;
+}
+
+function guardarSesion(data) {
+    const usuario = {
+        id: data.user.id,
+        nombre: data.user.name,
+        email: data.user.email,
+        rol: data.user.role,
+        csrfToken: data.csrfToken
+    };
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
+    return usuario;
+}
+
+async function leerRespuestaJSON(response) {
+    if (response.status === 204) return null;
+    try {
+        return await response.json();
+    } catch {
+        throw new Error("No se pudo leer la respuesta del servidor. Verifica que la API y MySQL estén iniciados.");
+    }
+}
+
+function escaparHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
 
 function abrirModal(tipo = "register") {
 
@@ -143,71 +193,9 @@ function cerrarModal() {
 
 }
 
-async function cargarUsuarios() {
-
-    const guardados = localStorage.getItem(DB_KEY);
-
-    if (guardados) {
-        return JSON.parse(guardados);
-    }
-
-    try {
-
-        const respuesta = await fetch(DB_PATH);
-
-        if (respuesta.ok) {
-            const usuarios = await respuesta.json();
-            if (usuarios && usuarios.length) {
-                localStorage.setItem(DB_KEY, JSON.stringify(usuarios));
-                return usuarios;
-            }
-        }
-
-    } catch (error) {
-        console.warn("No se pudo cargar la base local", error);
-    }
-
-    localStorage.setItem(DB_KEY, JSON.stringify(USUARIOS_INICIALES));
-    return USUARIOS_INICIALES;
-
-}
-
-async function guardarUsuarios(usuarios) {
-
-    localStorage.setItem(DB_KEY, JSON.stringify(usuarios));
-
-    try {
-        await fetch(DB_PATH, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(usuarios)
-        });
-    } catch (error) {
-        console.warn("No se pudo sincronizar el archivo JSON", error);
-    }
-
-}
-
-function cargarMascotas() {
-
-    const guardadas = localStorage.getItem(PETS_KEY);
-
-    if (guardadas) {
-        return JSON.parse(guardadas);
-    }
-
-    localStorage.setItem(PETS_KEY, JSON.stringify(mascotasIniciales));
-    return mascotasIniciales;
-
-}
-
-function guardarMascotas(mascotas) {
-    localStorage.setItem(PETS_KEY, JSON.stringify(mascotas));
-}
-
 async function procesarFotoMascota(file) {
     if (!file) {
-        return "https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=80";
+        return null;
     }
 
     const tiposPermitidos = ["image/png", "image/jpeg", "image/webp", "image/gif"];
@@ -233,24 +221,17 @@ async function procesarFotoMascota(file) {
     contexto.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     bitmap.close();
 
-    const fotoOptimizada = await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         canvas.toBlob((blob) => {
             if (!blob) {
                 reject(new Error("No se pudo procesar la imagen."));
                 return;
             }
-
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
-            reader.readAsDataURL(blob);
         }, "image/webp", 0.82);
     });
-
-    return fotoOptimizada;
 }
 
-function renderMascotas() {
+async function renderMascotas() {
 
     const contenedor = document.getElementById("petsList");
     const petSectionTitle = document.getElementById("petSectionTitle");
@@ -281,7 +262,14 @@ function renderMascotas() {
         }
     }
 
-    const mascotas = cargarMascotas();
+    let mascotas;
+    try {
+        mascotas = await apiRequest("/api/pets");
+    } catch (error) {
+        console.error("No se pudieron cargar las mascotas.", error);
+        contenedor.textContent = "No se pudieron cargar las mascotas. Intenta actualizar la página.";
+        return;
+    }
 
     if (!mascotas.length) {
         contenedor.innerHTML = '<div class="pet-empty">Aún no hay mascotas publicadas.</div>';
@@ -407,8 +395,8 @@ function renderProfile() {
 
     contenedor.innerHTML = `
         <div class="profile-summary">
-            <h3>${usuario.nombre}</h3>
-            <p>${usuario.email}</p>
+            <h3>${escaparHTML(usuario.nombre)}</h3>
+            <p>${escaparHTML(usuario.email)}</p>
             <p><strong>Rol:</strong> ${rolTexto}</p>
             <span>Tu información está lista para actualizarse cuando lo necesites.</span>
         </div>
@@ -458,8 +446,9 @@ function renderAuthActions() {
         const rolTexto = usuario.rol === "admin" ? "Admin" : usuario.rol === "entidad" ? "Entidad" : "Usuario";
 
         authActions.innerHTML = `
-            <span class="user-name">Hola, ${usuario.nombre} (${rolTexto})</span>
-            <button class="profile-trigger" id="profileTrigger" aria-label="Abrir perfil" title="Abrir perfil">${inicial}</button>
+            <span class="user-name">Hola, ${escaparHTML(usuario.nombre)} (${rolTexto})</span>
+            <button class="profile-trigger" id="profileTrigger" aria-label="Abrir perfil" title="Abrir perfil">${escaparHTML(inicial)}</button>
+            ${usuario.rol === "admin" ? '<a class="auth-btn small secondary" href="/admin/">Dashboard</a>' : ""}
             <button class="auth-btn small secondary" id="logoutBtn">Cerrar sesión</button>
         `;
 
@@ -467,11 +456,17 @@ function renderAuthActions() {
             mostrarPerfil(true);
         });
 
-        document.getElementById("logoutBtn").addEventListener("click", () => {
-            sessionStorage.removeItem(SESSION_KEY);
-            renderAuthActions();
-            renderProfile();
-            renderMascotas();
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            try {
+                await apiRequest("/api/auth/logout", { method: "POST", body: {} });
+                sessionStorage.removeItem(SESSION_KEY);
+                renderAuthActions();
+                renderProfile();
+                renderMascotas();
+            } catch (error) {
+                console.error("No se pudo cerrar la sesión.", error);
+                loginMessage.textContent = error.message;
+            }
         });
 
     } else {
@@ -577,32 +572,30 @@ if (registerForm) {
         const nombre = registerForm.querySelector("input[name='nombre']").value.trim();
         const email = registerForm.querySelector("input[name='email']").value.trim();
         const password = registerForm.querySelector("input[name='password']").value;
-        const rol = registerForm.querySelector("select[name='rol']").value;
 
         if (!nombre || !email || !password) {
             registerMessage.textContent = "Completa todos los campos.";
             return;
         }
 
-        if (password.length < 8) {
-            registerMessage.textContent = "La contraseña debe tener al menos 8 caracteres.";
+        if (password.length < 12) {
+            registerMessage.textContent = "La contraseña debe tener al menos 12 caracteres.";
             return;
         }
 
-        const usuarios = await cargarUsuarios();
-
-        if (usuarios.some((usuario) => usuario.email.toLowerCase() === email.toLowerCase())) {
-            registerMessage.textContent = "Ese correo ya está registrado.";
-            return;
+        try {
+            const data = await apiRequest("/api/auth/register", {
+                method: "POST",
+                body: { name: nombre, email, password }
+            });
+            guardarSesion(data);
+            registerForm.reset();
+            registerMessage.textContent = "✅ Cuenta creada correctamente.";
+            renderAuthActions();
+            cerrarModal();
+        } catch (error) {
+            registerMessage.textContent = error.message;
         }
-
-        usuarios.push({ nombre, email, password, rol });
-        await guardarUsuarios(usuarios);
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ nombre, email, rol }));
-        registerForm.reset();
-        registerMessage.textContent = "✅ Cuenta creada correctamente.";
-        renderAuthActions();
-        cerrarModal();
     });
 
 }
@@ -614,21 +607,20 @@ if (loginForm) {
 
         const email = loginForm.querySelector("input[name='email']").value.trim();
         const password = loginForm.querySelector("input[name='password']").value;
-        const rol = loginForm.querySelector("select[name='rol']").value;
 
-        const usuarios = await cargarUsuarios();
-        const usuario = usuarios.find((item) => item.email.toLowerCase() === email.toLowerCase() && item.password === password && item.rol === rol);
-
-        if (!usuario) {
-            loginMessage.textContent = "Correo, contraseña o rol incorrectos.";
-            return;
+        try {
+            const data = await apiRequest("/api/auth/login", {
+                method: "POST",
+                body: { email, password }
+            });
+            guardarSesion(data);
+            loginForm.reset();
+            loginMessage.textContent = "✅ Sesión iniciada.";
+            renderAuthActions();
+            cerrarModal();
+        } catch (error) {
+            loginMessage.textContent = error.message;
         }
-
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }));
-        loginForm.reset();
-        loginMessage.textContent = "✅ Sesión iniciada.";
-        renderAuthActions();
-        cerrarModal();
     });
 
 }
@@ -672,22 +664,19 @@ if (petForm) {
             return;
         }
 
-        const mascotas = cargarMascotas();
-
-        mascotas.unshift({
-            id: Date.now(),
-            nombre,
-            raza,
-            edad,
-            descripcion,
-            foto
-        });
-
         try {
-            guardarMascotas(mascotas);
+            const payload = new FormData();
+            payload.append("name", nombre);
+            payload.append("species", petForm.querySelector("select[name='tipo']")?.value || "perro");
+            payload.append("breed", raza);
+            payload.append("age", edad);
+            payload.append("description", descripcion);
+            if (foto) payload.append("photo", foto, "mascota.webp");
+
+            await apiRequest("/api/pets", { method: "POST", body: payload });
         } catch (error) {
-            console.error("No se pudo guardar la mascota en el navegador.", error);
-            petMessage.textContent = "No se pudo guardar la mascota. Prueba con una imagen más pequeña o libera espacio del navegador.";
+            console.error("No se pudo guardar la mascota.", error);
+            petMessage.textContent = error.message || "No se pudo guardar la mascota.";
             return;
         }
 
@@ -724,68 +713,74 @@ if (editProfileForm) {
             return;
         }
 
-        const usuarios = await cargarUsuarios();
-        const usuarioActual = usuarios.find((item) => item.email.toLowerCase() === usuario.email.toLowerCase());
-
-        if (!usuarioActual) {
-            profileMessage.textContent = "No se encontró tu cuenta.";
-            return;
+        try {
+            const data = await apiRequest("/api/auth/profile", {
+                method: "PATCH",
+                body: { name: nombre, email, password }
+            });
+            guardarSesion(data);
+            profileMessage.textContent = "✅ Perfil actualizado correctamente.";
+            renderAuthActions();
+            renderProfile();
+        } catch (error) {
+            profileMessage.textContent = error.message;
         }
-
-        const correoDuplicado = usuarios.some((item) => item.email.toLowerCase() === email.toLowerCase() && item.email.toLowerCase() !== usuario.email.toLowerCase());
-
-        if (correoDuplicado) {
-            profileMessage.textContent = "Ese correo ya está en uso.";
-            return;
-        }
-
-        usuarioActual.nombre = nombre;
-        usuarioActual.email = email;
-
-        if (password) {
-            usuarioActual.password = password;
-        }
-
-        await guardarUsuarios(usuarios);
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ nombre, email, rol: usuarioActual.rol }));
-        profileMessage.textContent = "✅ Perfil actualizado correctamente.";
-        renderAuthActions();
-        renderProfile();
     });
 
 }
 
-renderAuthActions();
+async function restaurarSesion() {
+    try {
+        const data = await apiRequest("/api/auth/me");
+        if (data.user) {
+            guardarSesion(data);
+        } else {
+            sessionStorage.removeItem(SESSION_KEY);
+        }
+    } catch (error) {
+        console.error("No se pudo verificar la sesión.", error);
+        loginMessage.textContent = "No se pudo conectar con el servidor. Intenta actualizar la página.";
+    }
+    renderAuthActions();
+}
 
-//==============================
-// FORMULARIO SUSCRIPCIÓN
-//==============================
+restaurarSesion();
 
 const formulario = document.getElementById("formulario");
+formulario?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const correo = formulario.querySelector("input").value.trim();
+    if (!correo) {
+        alert("Ingresa un correo electrónico.");
+        return;
+    }
+    alert("✅ Gracias por suscribirte.\n\nMuy pronto recibirás noticias sobre nuestros rescates.");
+    formulario.reset();
+});
 
-if (formulario) {
+const contactForm = document.getElementById("contactForm");
+const contactMessage = document.getElementById("contactMessage");
 
-    formulario.addEventListener("submit", (e) => {
+contactForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(contactForm);
+    contactMessage.textContent = "";
 
-        e.preventDefault();
-
-        const correo = formulario.querySelector("input").value;
-
-        if (correo === "") {
-
-            alert("Ingresa un correo electrónico.");
-
-            return;
-
-        }
-
-        alert("✅ Gracias por suscribirte.\n\nMuy pronto recibirás noticias sobre nuestros rescates.");
-
-        formulario.reset();
-
-    });
-
-}
+    try {
+        await apiRequest("/api/messages", {
+            method: "POST",
+            body: {
+                name: formData.get("name"),
+                email: formData.get("email"),
+                message: formData.get("message")
+            }
+        });
+        contactForm.reset();
+        contactMessage.textContent = "✅ Recibimos tu mensaje. Gracias por escribirnos.";
+    } catch (error) {
+        contactMessage.textContent = error.message;
+    }
+});
 
 //==============================
 // ANIMACIÓN AL HACER SCROLL
@@ -1023,16 +1018,13 @@ document.querySelectorAll(".ba-compare").forEach((compare) => {
 // MAPA EN VIVO DE ANIMALES REPORTADOS
 //==============================
 // Usa Leaflet + OpenStreetMap (sin clave de API).
-// Los reportes se guardan en localStorage y se sincronizan entre pestañas
-// al instante. Para tiempo real entre dispositivos distintos, solo hay que
-// reemplazar cargarReportes() / guardarReportes() por llamadas a un backend
-// (Firebase, Supabase, tu propia API con WebSocket, etc.).
+// Los reportes se guardan en MySQL y el mapa los vuelve a consultar periódicamente.
 
 function initMapaReportes() {
 
     const mapEl = document.getElementById("reportMap");
 
-    if (!mapEl) {
+    if (!mapEl || mapEl.dataset.mapInitialized === "true") {
         return;
     }
 
@@ -1041,7 +1033,6 @@ function initMapaReportes() {
         return;
     }
 
-    const REPORTS_KEY = "huellas_reportes";
     const CENTRO = [6.2442, -75.5812]; // Medellín
     const TIPOS = {
         perro: { emoji: "🐶", nombre: "Perro" },
@@ -1054,12 +1045,6 @@ function initMapaReportes() {
         rescate: "En rescate",
         rescatado: "Rescatado"
     };
-
-    const reportesIniciales = [
-        { id: 1, tipo: "perro", estado: "herido", descripcion: "Perro mediano color café con una pata lastimada, cerca del parque.", foto: "", lat: 6.2088, lng: -75.5686, fecha: Date.now() - 1000 * 60 * 35, autor: "Usuario Demo" },
-        { id: 2, tipo: "gato", estado: "visto", descripcion: "Gata gris con cachorros debajo de un carro estacionado.", foto: "", lat: 6.2442, lng: -75.5920, fecha: Date.now() - 1000 * 60 * 60 * 3, autor: "Usuario Demo" },
-        { id: 3, tipo: "perro", estado: "rescate", descripcion: "Perro negro flaco, un voluntario ya va en camino.", foto: "", lat: 6.2518, lng: -75.5636, fecha: Date.now() - 1000 * 60 * 60 * 6, autor: "Entidad Demo" }
-    ];
 
     // ---------- utilidades ----------
 
@@ -1078,31 +1063,17 @@ function initMapaReportes() {
         return `hace ${Math.round(h / 24)} d`;
     }
 
-    const usuarioActual = () => JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+    const usuarioActual = () => usuarioSesion();
     const puedeGestionar = () => ["admin", "entidad"].includes(usuarioActual()?.rol);
 
-    // ---------- datos (aquí se cambiaría por un backend) ----------
-
-    function cargarReportes() {
-        const guardados = localStorage.getItem(REPORTS_KEY);
-        if (guardados) {
-            try { return JSON.parse(guardados); } catch (e) { /* datos dañados */ }
-        }
-        localStorage.setItem(REPORTS_KEY, JSON.stringify(reportesIniciales));
-        return reportesIniciales;
-    }
-
-    const canal = "BroadcastChannel" in window ? new BroadcastChannel("huellas_reportes") : null;
-
-    function guardarReportes(lista, nuevoId = null) {
-        localStorage.setItem(REPORTS_KEY, JSON.stringify(lista));
-        canal?.postMessage({ nuevoId });
-        refrescar(nuevoId);
+    async function cargarReportes() {
+        return apiRequest("/api/reports");
     }
 
     // ---------- mapa ----------
 
     const mapa = L.map(mapEl, { scrollWheelZoom: false }).setView(CENTRO, 13);
+    mapEl.dataset.mapInitialized = "true";
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -1208,22 +1179,19 @@ function initMapaReportes() {
             `En vivo · ${lista.length} reporte${lista.length === 1 ? "" : "s"} · ${hora}`;
     }
 
-    function refrescar(nuevoId = null) {
-        const lista = cargarReportes();
-        pintarMarcadores(lista, nuevoId);
-        pintarLista(lista);
-        pintarEstado(lista);
+    async function refrescar(nuevoId = null) {
+        try {
+            const lista = await cargarReportes();
+            pintarMarcadores(lista, nuevoId);
+            pintarLista(lista);
+            pintarEstado(lista);
+        } catch (error) {
+            console.error("No se pudieron cargar los reportes.", error);
+            document.getElementById("mapStatusText").textContent = "No se pudieron cargar los reportes.";
+        }
     }
 
     // ---------- tiempo real ----------
-
-    canal?.addEventListener("message", (e) => refrescar(e.data?.nuevoId));
-
-    window.addEventListener("storage", (e) => {
-        if (e.key === REPORTS_KEY) {
-            refrescar();
-        }
-    });
 
     setInterval(() => refrescar(), 15000);
 
@@ -1252,17 +1220,27 @@ function initMapaReportes() {
     mapa.on("popupopen", (e) => {
         const el = e.popup.getElement();
         el.querySelector("[data-accion='estado']")?.addEventListener("change", (ev) => {
-            const lista = cargarReportes();
-            const r = lista.find((x) => x.id === Number(ev.target.dataset.id));
-            if (r && puedeGestionar()) {
-                r.estado = ev.target.value;
-                guardarReportes(lista);
+            if (puedeGestionar()) {
+                apiRequest(`/api/reports/${ev.target.dataset.id}`, {
+                    method: "PATCH",
+                    body: { status: ev.target.value }
+                }).then(() => refrescar()).catch((error) => {
+                    console.error("No se pudo actualizar el reporte.", error);
+                    msg.textContent = error.message;
+                });
             }
         });
         el.querySelector("[data-accion='borrar']")?.addEventListener("click", (ev) => {
             if (!puedeGestionar() || !confirm("¿Eliminar este reporte?")) return;
-            guardarReportes(cargarReportes().filter((x) => x.id !== Number(ev.target.dataset.id)));
-            mapa.closePopup();
+            apiRequest(`/api/reports/${ev.target.dataset.id}`, { method: "DELETE" })
+                .then(() => {
+                    mapa.closePopup();
+                    refrescar();
+                })
+                .catch((error) => {
+                    console.error("No se pudo eliminar el reporte.", error);
+                    msg.textContent = error.message;
+                });
         });
     });
 
@@ -1318,7 +1296,7 @@ function initMapaReportes() {
         );
     });
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
 
         e.preventDefault();
 
@@ -1335,26 +1313,28 @@ function initMapaReportes() {
         }
 
         const datos = new FormData(form);
-        const lista = cargarReportes();
-        const id = Date.now();
-
-        lista.unshift({
-            id,
-            tipo: datos.get("tipo"),
-            estado: datos.get("estado"),
-            descripcion: String(datos.get("descripcion")).trim(),
-            foto: String(datos.get("foto") || "").trim(),
-            lat: ubicacion.lat,
-            lng: ubicacion.lng,
-            fecha: id,
-            autor: usuario.nombre
-        });
-
-        guardarReportes(lista, id);
-        form.reset();
-        limpiarUbicacion();
-        msg.textContent = "✅ Reporte publicado. Ya aparece en el mapa.";
-        mapa.flyTo([lista[0].lat, lista[0].lng], 16);
+        const lat = ubicacion.lat;
+        const lng = ubicacion.lng;
+        try {
+            const respuesta = await apiRequest("/api/reports", {
+                method: "POST",
+                body: {
+                    tipo: datos.get("tipo"),
+                    estado: datos.get("estado"),
+                    descripcion: String(datos.get("descripcion")).trim(),
+                    foto: String(datos.get("foto") || "").trim(),
+                    lat: ubicacion.lat,
+                    lng: ubicacion.lng
+                }
+            });
+            form.reset();
+            limpiarUbicacion();
+            msg.textContent = "✅ Reporte publicado. Ya aparece en el mapa.";
+            await refrescar(respuesta.id);
+            mapa.flyTo([lat, lng], 16);
+        } catch (error) {
+            msg.textContent = error.message;
+        }
     });
 
     // Se llama desde renderAuthActions() al iniciar/cerrar sesión

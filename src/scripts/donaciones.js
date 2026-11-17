@@ -11,7 +11,7 @@ function mostrarNotificacion(mensaje, tipo = "success") {
 
     donationNotice.hidden = false;
     donationNotice.className = `donation-notice ${tipo}`;
-    donationNotice.innerHTML = mensaje;
+    donationNotice.textContent = mensaje;
 
     window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -22,7 +22,7 @@ function verificarSesion() {
     const usuario = JSON.parse(sessionStorage.getItem("huellas_usuario") || "null");
 
     if (!usuario) {
-        mostrarNotificacion("Para hacer una donación debes iniciar sesión o registrarte primero. <a href='../index.html' style='color:inherit; font-weight:700;'>Ir a acceder</a>", "error");
+        mostrarNotificacion("Para hacer una donación debes iniciar sesión o registrarte primero. Vuelve al inicio para acceder.", "error");
         return false;
     }
 
@@ -30,7 +30,27 @@ function verificarSesion() {
 
 }
 
-formDinero.addEventListener("submit", function(e){
+async function enviarDonacion(datos) {
+    const usuario = JSON.parse(sessionStorage.getItem("huellas_usuario") || "null");
+    const response = await fetch("/api/donations", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": usuario?.csrfToken || ""
+        },
+        credentials: "same-origin",
+        body: JSON.stringify(datos)
+    });
+    let result;
+    try {
+        result = await response.json();
+    } catch {
+        throw new Error("No se pudo leer la respuesta del servidor. Verifica que la API y MySQL estén iniciados.");
+    }
+    if (!response.ok) throw new Error(result.error || "No se pudo registrar la donación.");
+}
+
+formDinero.addEventListener("submit", async function(e){
 
     e.preventDefault();
 
@@ -59,9 +79,13 @@ formDinero.addEventListener("submit", function(e){
 
     }
 
-    mostrarNotificacion(`❤️ Gracias por tu apoyo, <strong>${JSON.parse(sessionStorage.getItem("huellas_usuario") || "{}")?.nombre || "usuario"}</strong>.<br><br>Has registrado una donación de <strong>$${Number(valor).toLocaleString("es-CO")}</strong>.<br><br>Tu aporte permitirá brindar alimento, atención médica y nuevas oportunidades a animales en situación de abandono.`, "success");
-
-    formDinero.reset();
+    try {
+        await enviarDonacion({ type: "money", amount: Number(valor) });
+        mostrarNotificacion(`Gracias por tu apoyo. Registramos tu aporte de $${Number(valor).toLocaleString("es-CO")}.`, "success");
+        formDinero.reset();
+    } catch (error) {
+        mostrarNotificacion(error.message, "error");
+    }
 
 });
 
@@ -71,7 +95,7 @@ formDinero.addEventListener("submit", function(e){
 
 const formEspecie = document.getElementById("formEspecie");
 
-formEspecie.addEventListener("submit",function(e){
+formEspecie.addEventListener("submit", async function(e){
 
     e.preventDefault();
 
@@ -101,17 +125,20 @@ formEspecie.addEventListener("submit",function(e){
 
     }
 
-    let productos=[];
-
-    checks.forEach(check=>{
-
-        productos.push(check.parentElement.textContent.trim());
-
-    });
-
-    mostrarNotificacion(`🐾 Gracias por tu donación en especie, <strong>${JSON.parse(sessionStorage.getItem("huellas_usuario") || "{}")?.nombre || "usuario"}</strong>.<br><br>Hemos recibido tu solicitud para entregar: <strong>${productos.join(", ")}</strong>.<br><br>Pronto un voluntario se comunicará contigo para coordinar la recolección en <strong>${ciudad}</strong>.`, "success");
-
-    formEspecie.reset();
+    const productos = [...checks].map((check) => check.parentElement.textContent.trim());
+    try {
+        await enviarDonacion({
+            type: "in_kind",
+            items: productos,
+            city: ciudad,
+            address: direccion,
+            phone: telefono
+        });
+        mostrarNotificacion(`Gracias por tu donación en especie. Registramos: ${productos.join(", ")}. Nos comunicaremos contigo para coordinar la recolección.`, "success");
+        formEspecie.reset();
+    } catch (error) {
+        mostrarNotificacion(error.message, "error");
+    }
 
 });
 

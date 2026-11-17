@@ -518,6 +518,12 @@
 
                                     <input type="text" name="nombre" placeholder="Nombre de la mascota" required>
 
+                                    <select name="tipo" required>
+                                        <option value="perro">Perro</option>
+                                        <option value="gato">Gato</option>
+                                        <option value="otro">Otro animal</option>
+                                    </select>
+
                                     <input type="text" name="raza" placeholder="Raza o tipo" required>
 
                                     <input type="text" name="edad" placeholder="Edad aproximada (ej. 3 años o 6 meses)" required>
@@ -774,10 +780,20 @@
                 <h3>Suscríbete</h3>
 
                 <form id="formulario">
-
                     <input type="email" placeholder="Correo electrónico" required>
-
                     <button type="submit" aria-label="Suscribirme">➜</button>
+                </form>
+
+                <h3>Escríbenos</h3>
+
+                <form id="contactForm">
+
+                    <input type="text" name="name" placeholder="Tu nombre" maxlength="120" required>
+                    <input type="email" name="email" placeholder="Correo electrónico" maxlength="190" required>
+                    <textarea name="message" placeholder="¿En qué podemos ayudarte?" rows="3" maxlength="5000" required></textarea>
+
+                    <button type="submit">Enviar mensaje</button>
+                    <p class="auth-message" id="contactMessage" role="status"></p>
 
                 </form>
 
@@ -819,7 +835,7 @@
 
                     <input type="email" name="email" placeholder="Correo electrónico" required>
 
-                    <input type="password" name="password" placeholder="Nueva contraseña (opcional)">
+                    <input type="password" name="password" placeholder="Nueva contraseña (mínimo 12 caracteres)" minlength="12">
 
                     <button type="submit">Guardar cambios</button>
 
@@ -852,13 +868,7 @@
 
                 <input type="text" name="nombre" placeholder="Tu nombre" required>
                 <input type="email" name="email" placeholder="Correo electrónico" required>
-                <input type="password" name="password" placeholder="Contraseña (mínimo 8 caracteres)" minlength="8" required>
-
-                <select name="rol" required>
-                    <option value="usuario">Usuario</option>
-                    <option value="admin">Administrador</option>
-                    <option value="entidad">Entidad</option>
-                </select>
+                <input type="password" name="password" placeholder="Contraseña (mínimo 12 caracteres)" minlength="12" required>
 
                 <button type="submit">Registrarme</button>
 
@@ -872,12 +882,6 @@
 
                 <input type="email" name="email" placeholder="Correo electrónico" required>
                 <input type="password" name="password" placeholder="Contraseña" required>
-
-                <select name="rol" required>
-                    <option value="usuario">Usuario</option>
-                    <option value="admin">Administrador</option>
-                    <option value="entidad">Entidad</option>
-                </select>
 
                 <button type="submit">Entrar</button>
 

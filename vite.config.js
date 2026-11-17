@@ -12,8 +12,15 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(rootDirectory, "index.html"),
-        donations: resolve(rootDirectory, "donaciones/donaciones.html")
+        donations: resolve(rootDirectory, "donaciones/donaciones.html"),
+        admin: resolve(rootDirectory, "admin/index.html")
       }
+    }
+  },
+  server: {
+    proxy: {
+      "/api": "http://localhost:3001",
+      "/uploads": "http://localhost:3001"
     }
   }
 });
