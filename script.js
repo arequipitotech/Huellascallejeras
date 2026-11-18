@@ -426,6 +426,21 @@ if (authActions) {
 
 }
 
+const reportAuthTrigger = document.getElementById("reportAuthTrigger");
+
+if (reportAuthTrigger) {
+    reportAuthTrigger.addEventListener("click", () => {
+        const usuario = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+
+        if (!usuario) {
+            abrirModal("register");
+            return;
+        }
+
+        document.querySelector("#reportForm select[name='tipo']")?.focus();
+    });
+}
+
 if (closeAuthModal) {
     closeAuthModal.addEventListener("click", cerrarModal);
 }
@@ -794,55 +809,23 @@ numeros.forEach((numero) => {
 // BOTÓN VOLVER ARRIBA
 //==============================
 
-const volver = document.createElement("button");
+const volver = document.getElementById("volverArriba");
 
-volver.innerHTML = "⬆";
+if (volver) {
+    const actualizarVisibilidad = () => {
+        volver.hidden = window.scrollY <= 300;
+    };
 
-volver.id = "volverArriba";
+    window.addEventListener("scroll", actualizarVisibilidad, { passive: true });
+    actualizarVisibilidad();
 
-document.body.appendChild(volver);
-
-volver.style.position = "fixed";
-volver.style.bottom = "30px";
-volver.style.right = "30px";
-volver.style.width = "55px";
-volver.style.height = "55px";
-volver.style.borderRadius = "50%";
-volver.style.border = "none";
-volver.style.background = "#db2777";
-volver.style.color = "white";
-volver.style.fontSize = "22px";
-volver.style.cursor = "pointer";
-volver.style.display = "none";
-volver.style.boxShadow = "0 10px 20px rgba(0,0,0,.3)";
-volver.style.zIndex = "999";
-
-window.addEventListener("scroll", () => {
-
-    if (window.scrollY > 400) {
-
-        volver.style.display = "block";
-
-    } else {
-
-        volver.style.display = "none";
-
-    }
-
-});
-
-volver.addEventListener("click", () => {
-
-    window.scrollTo({
-
-        top: 0,
-
-        behavior: "smooth"
-
+    volver.addEventListener("click", () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
     });
-
-});
-
+}
 //==============================
 // SLIDER ANTES Y DESPUÉS
 //==============================

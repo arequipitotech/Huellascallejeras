@@ -177,6 +177,10 @@ HEADER
     box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
 }
 
+[data-theme="dark"] .header.scrolled .logo-image {
+    mix-blend-mode: normal;
+}
+
 .header-inner {
     display: flex;
     align-items: center;
@@ -192,6 +196,8 @@ HEADER
     height: 64px;
     flex-shrink: 0;
     overflow: hidden;
+    position: relative; 
+    left: -150px;
 }
 
 .logo-image {
@@ -269,20 +275,40 @@ NAV
     color: var(--primary);
 }
 
+
 .nav .donar {
-    padding: 12px 26px;
+    display: inline-flex;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
     background: var(--primary);
     color: #fff;
-    border-radius: 999px;
-    font-weight: 600;
-    transition: .3s;
+    line-height: 1;
+    transition: background .3s ease, transform .3s ease;
 }
 
 .nav .donar:hover {
     background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(219, 39, 119, .35);
     color: #fff;
+    transform: translateY(-2px);
+}
+
+.nav .boton_dona {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+.nav .donar-text {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .auth-actions {
@@ -1566,14 +1592,38 @@ BOTÓN VOLVER ARRIBA
 =======================*/
 
 #volverArriba {
-    background: var(--primary) !important;
-    box-shadow: 0 10px 25px rgba(219, 39, 119, .35) !important;
-    transition: background .3s, transform .3s;
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 999;
+    width: 150px;
+    height: 150px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    filter: drop-shadow(0 6px 10px rgba(219, 39, 119, .35));
+    transition: transform .3s ease;
+}
+
+#volverArriba[hidden] {
+    display: none;
+}
+
+#volverArriba img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 #volverArriba:hover {
-    background: var(--primary-dark) !important;
     transform: translateY(-3px);
+}
+
+#volverArriba:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 3px;
 }
 
 /*======================
@@ -1616,6 +1666,17 @@ RESPONSIVE CELULAR
 =======================*/
 
 @media (max-width: 768px) {
+
+    #volverArriba {
+        right: 16px;
+        bottom: 16px;
+        width: 88px;
+        height: 88px;
+    }
+
+    .logo {
+        left: -24px;
+    }
 
     .menu-btn {
         display: block;
@@ -1880,6 +1941,25 @@ MAPA DE REPORTES
 .mapa-form-box h3 {
     color: var(--ink);
     margin-bottom: 6px;
+}
+
+.report-auth-trigger {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.report-auth-trigger:hover {
+    color: var(--primary);
+}
+
+.report-auth-trigger:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
 }
 
 .mapa-form-box p {

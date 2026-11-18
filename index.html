@@ -42,7 +42,7 @@
         <div class="container header-inner">
 
             <a href="" class="logo">
-
+                        <!-- logotipo de huellas  -->
                 <img class="logo-image" src="img/logo.png" alt="Huellas Callejeras">
 
             </a>
@@ -75,7 +75,8 @@
                 <a href="#contacto">Contacto</a>
 
                 <a href="donaciones/donaciones.html#donar" class="donar">
-                    Dona 🐾
+                    <img class="boton_dona" src="img/BUTTON_DONA.png" alt="">
+                    <span class="donar-text">DONA</span>
                 </a>
 
                 <div class="auth-actions" id="authActions">
@@ -147,7 +148,7 @@
                 <div class="hero-img" data-animate data-delay="200">
 
                     <div class="hero-img-frame">
-                        <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=1200&q=80" alt="Perro rescatado feliz">
+                        <img src="img/image.png" alt="Perro rescatado feliz">
                     </div>
 
                     <div class="badge">
@@ -220,7 +221,7 @@
 
                         <div class="mapa-form-box">
 
-                            <h3>Reportar un animal</h3>
+                            <h3><button type="button" class="report-auth-trigger" id="reportAuthTrigger">Reportar un animal</button></h3>
                             <p id="reportHint">Inicia sesión para reportar un animal.</p>
 
                             <form id="reportForm" class="pet-form">
@@ -893,6 +894,12 @@
         </div>
 
     </div>
+
+
+
+    <button type="button" id="volverArriba" aria-label="Volver arriba" hidden>
+        <img src="img/Boton_Subir.png" alt="">
+    </button>
 
 
 </body>
