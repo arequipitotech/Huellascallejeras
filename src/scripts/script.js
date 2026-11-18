@@ -447,12 +447,27 @@ function renderAuthActions() {
 
         authActions.innerHTML = `
             <span class="user-name">Hola, ${escaparHTML(usuario.nombre)} (${rolTexto})</span>
-            <button class="profile-trigger" id="profileTrigger" aria-label="Abrir perfil" title="Abrir perfil">${escaparHTML(inicial)}</button>
-            ${usuario.rol === "admin" ? '<a class="auth-btn small secondary" href="/admin/">Dashboard</a>' : ""}
-            <button class="auth-btn small secondary" id="logoutBtn">Cerrar sesión</button>
+            <div class="profile-menu-wrap">
+                <button class="profile-trigger" id="profileTrigger" aria-label="Abrir menú de usuario" aria-haspopup="menu" aria-expanded="false" aria-controls="profileMenu" title="Abrir menú de usuario">${escaparHTML(inicial)}</button>
+                <div class="profile-menu" id="profileMenu" role="menu" hidden>
+                    <button type="button" class="profile-menu-item" id="profileViewBtn" role="menuitem">Mi perfil</button>
+                    ${usuario.rol === "admin" ? '<a class="profile-menu-item" href="/admin/" role="menuitem">Panel administrativo</a>' : ""}
+                    <button type="button" class="profile-menu-item" id="logoutBtn" role="menuitem">Cerrar sesión</button>
+                </div>
+            </div>
         `;
 
-        document.getElementById("profileTrigger").addEventListener("click", () => {
+        const profileTrigger = document.getElementById("profileTrigger");
+        const profileMenu = document.getElementById("profileMenu");
+
+        profileTrigger.addEventListener("click", () => {
+            profileMenu.hidden = !profileMenu.hidden;
+            profileTrigger.setAttribute("aria-expanded", String(!profileMenu.hidden));
+        });
+
+        document.getElementById("profileViewBtn").addEventListener("click", () => {
+            profileMenu.hidden = true;
+            profileTrigger.setAttribute("aria-expanded", "false");
             mostrarPerfil(true);
         });
 
@@ -483,6 +498,33 @@ function renderAuthActions() {
     window.actualizarFormReporte();
 
 }
+
+document.addEventListener("click", (event) => {
+    const profileMenu = document.getElementById("profileMenu");
+    const profileTrigger = document.getElementById("profileTrigger");
+
+    if (!profileMenu || !profileTrigger || event.target.closest(".profile-menu-wrap")) {
+        return;
+    }
+
+    profileMenu.hidden = true;
+    profileTrigger.setAttribute("aria-expanded", "false");
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") {
+        return;
+    }
+
+    const profileMenu = document.getElementById("profileMenu");
+    const profileTrigger = document.getElementById("profileTrigger");
+
+    if (profileMenu && profileTrigger && !profileMenu.hidden) {
+        profileMenu.hidden = true;
+        profileTrigger.setAttribute("aria-expanded", "false");
+        profileTrigger.focus();
+    }
+});
 
 if (authActions) {
 
